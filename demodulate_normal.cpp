@@ -11,6 +11,19 @@ static std::vector<Conversation> conversations;
 static uint32_t demod_start_time, demod_end_time;
 static uint32_t resample_start_time, resample_end_time;
 
+void init_fft() {
+    arm_status status = arm_cfft_radix2_init_f32(&fft_instance, FFT_SIZE, 0, 1);
+    char msg[128];
+    print_timestamp(msg, sizeof(msg));
+    if (status != ARM_MATH_SUCCESS) {
+        sprintf(msg + strlen(msg), "FFT init failed - Status: %d", status);
+        Serial.println(msg);
+    } else {
+        sprintf(msg + strlen(msg), "FFT init succeeded");
+        Serial.println(msg);
+    }
+}
+
 void demodulate_js8_normal() {
     demod_start_time = micros();
     char msg[128];

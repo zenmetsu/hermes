@@ -13,5 +13,6 @@ extern float tone_frequencies[NUM_TONES];
 void init_signal_proc();
 void report_buffer_write_speed();
 void transfer_to_audio_buffer();
+void init_fft(); // Added for FFT initialization
 
 #endif

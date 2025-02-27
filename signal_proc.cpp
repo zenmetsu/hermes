@@ -26,15 +26,7 @@ void init_signal_proc() {
     sprintf(msg + strlen(msg), "Before FFT init - FFT_SIZE: %d, Free heap: %lu bytes", FFT_SIZE, free_heap);
     Serial.println(msg);
 
-    arm_status status = arm_cfft_radix2_init_f32(&fft_instance, FFT_SIZE, 0, 1);
-    print_timestamp(msg, sizeof(msg));
-    if (status != ARM_MATH_SUCCESS) {
-        sprintf(msg + strlen(msg), "FFT init failed - Status: %d", status);
-        Serial.println(msg);
-    } else {
-        sprintf(msg + strlen(msg), "FFT init succeeded");
-        Serial.println(msg);
-    }
+    init_fft(); // Call new function to initialize fft_instance
 
     write_idx = 0;
 
