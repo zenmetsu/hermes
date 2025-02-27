@@ -11,6 +11,8 @@ struct Conversation {
     bool active;
 };
 
+static const int COSTAS_PATTERN[7] = {4, 2, 5, 6, 1, 3, 0};
+
 void demodulate_js8_normal();
 
 #endif

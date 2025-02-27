@@ -1,9 +1,10 @@
 #include <Audio.h>
 #include <Arduino.h>
+#include <TimeLib.h>           // Added for setSyncProvider and second
 #include "audio_io.h"
 #include "signal_proc.h"
-#include "transmit.h"          // New TX header
-#include "demodulate_normal.h" // New RX header
+#include "transmit.h"
+#include "demodulate_normal.h"
 #include "utils.h"
 #include "config.h"
 
@@ -29,9 +30,8 @@ void setup() {
     init_audio_io();
 
     init_signal_proc();
-    init_utils();
 
-    setSyncProvider(get_teensy_time);
+    setSyncProvider(get_teensy_time); // Now resolves with TimeLib.h
     start_time = get_teensy_time();
 
     bufferTimer.begin(transfer_audio_buffer, 2900); // ~2.9 ms
@@ -44,7 +44,7 @@ void setup() {
 
 void loop() {
     time_t now = get_teensy_time();
-    float seconds = second(now) + (millis() % 1000) / 1000.0;
+    float seconds = second(now) + (millis() % 1000) / 1000.0; // Now resolves with TimeLib.h
 
     if ((seconds >= 2.36 && seconds < 2.37) || 
         (seconds >= 17.36 && seconds < 17.37) || 

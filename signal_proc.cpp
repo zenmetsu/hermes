@@ -9,7 +9,6 @@ EXTMEM int16_t resampled_buffer[RESAMPLED_BUFFER_SIZE]; // ~444 KB, 16-bit, 12.8
 volatile size_t write_idx = 0;
 float tone_frequencies[NUM_TONES];
 
-// FFT instance moved to demodulate_normal.cpp
 static uint32_t init_start_time, init_end_time;
 static uint32_t peripheral_start_time, peripheral_end_time;
 
