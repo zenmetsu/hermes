@@ -1,6 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+constexpr const char* VERSION = "0.11"; // Program version
+
 #define PTT_PIN 2
 #define LED_STATUS_PIN 13
 #define SAMPLE_RATE_NATIVE 44100  // Native sample rate (44.1 kHz)

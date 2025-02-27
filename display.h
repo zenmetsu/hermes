@@ -15,8 +15,8 @@
 extern ILI9341_t3n tft; // Declare global tft instance
 
 void init_display(ILI9341_t3n* tft);
-void update_display_state(const char* state, ILI9341_t3n* tft = nullptr); // Default to global tft
+void update_display_state(const char* state, ILI9341_t3n* tft = nullptr); // Update state only
+void update_display_full(const char* callsign, const char* date, const char* time, const char* state, ILI9341_t3n* tft = nullptr); // Full buffer rebuild
 void draw_welcome_message(ILI9341_t3n* tft);
-void update_display_dma(ILI9341_t3n* tft);
 
 #endif

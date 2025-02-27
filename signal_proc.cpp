@@ -51,7 +51,7 @@ void report_buffer_write_speed() {
     peripheral_end_time = micros();
     char msg[128];
     print_timestamp(msg, sizeof(msg));
-    sprintf(msg + strlen(msg), "Peripheral (buffer write) initialized in %lu us, speed: %.2f kSamples/sec", 
+    sprintf(msg + strlen(msg), "Peripheral (buffer write) initialized in %lu us, speed: %.2f kSamples/sec",
             peripheral_end_time - peripheral_start_time, write_speed);
     Serial.println(msg);
 }
