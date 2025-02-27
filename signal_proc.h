@@ -5,16 +5,13 @@
 #include "config.h"
 #include "audio_io.h"
 
-extern float tone_frequencies[NUM_TONES];
 extern int16_t audio_buffer[SLOT_DURATION_MAX * SAMPLE_RATE_NATIVE];
+extern int16_t resampled_buffer[RESAMPLED_BUFFER_SIZE];
 extern volatile size_t write_idx;
+extern float tone_frequencies[NUM_TONES];
 
 void init_signal_proc();
 void report_buffer_write_speed();
-void transfer_to_audio_buffer(); // New function to move queue data
-void start_transmission(const char* message);
-bool is_transmitting();
-void generate_tx_audio(int16_t* block);
-void demodulate_js8_normal();
+void transfer_to_audio_buffer();
 
 #endif

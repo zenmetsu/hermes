@@ -2,11 +2,13 @@
 #include <Arduino.h>
 #include "audio_io.h"
 #include "signal_proc.h"
+#include "transmit.h"          // New TX header
+#include "demodulate_normal.h" // New RX header
 #include "utils.h"
 #include "config.h"
 
 AudioControlSGTL5000 audioShield;
-IntervalTimer bufferTimer; // Timer to transfer queue data to buffer
+IntervalTimer bufferTimer;
 
 static time_t start_time;
 static bool first_demod_done = false;
@@ -31,10 +33,8 @@ void setup() {
 
     setSyncProvider(get_teensy_time);
     start_time = get_teensy_time();
-    debug_print("JS8 on Teensy 4.1 initialized.");
 
-    // Start timer to transfer audio every ~2.9 ms (344 Hz)
-    bufferTimer.begin(transfer_audio_buffer, 2900); // µs
+    bufferTimer.begin(transfer_audio_buffer, 2900); // ~2.9 ms
 
     pinMode(LED_STATUS_PIN, OUTPUT);
     digitalWrite(LED_STATUS_PIN, HIGH);
