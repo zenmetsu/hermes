@@ -62,10 +62,20 @@ void demodulate_js8_normal() {
         window_count++;
     }
 
-    // Average power per bin
+    // Average power per bin and debug
+    float max_power = 0.0f;
+    int max_bin = 0;
     for (size_t bin = 0; bin < FFT_SIZE / 2; bin++) {
         power_spectrum[bin] /= window_count;
+        if (power_spectrum[bin] > max_power) {
+            max_power = power_spectrum[bin];
+            max_bin = bin;
+        }
     }
+    print_timestamp(msg, sizeof(msg));
+    sprintf(msg + strlen(msg), "Max FFT power after averaging: %.4f at bin %d (%.2f Hz)", 
+            max_power, max_bin, max_bin * (SAMPLE_RATE_RESAMPLED / (float)FFT_SIZE));
+    Serial.println(msg);
 
     // Find top 10 tone sets by power
     struct ToneSet {
@@ -89,6 +99,11 @@ void demodulate_js8_normal() {
             tone_sets.push_back({freq, total_power});
         }
     }
+
+    // Debug tone set count
+    print_timestamp(msg, sizeof(msg));
+    sprintf(msg + strlen(msg), "Number of tone sets detected: %u", (unsigned)tone_sets.size());
+    Serial.println(msg);
 
     // Sort and limit to top 10
     std::sort(tone_sets.begin(), tone_sets.end(), 

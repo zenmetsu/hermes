@@ -18,12 +18,29 @@ void init_signal_proc() {
         tone_frequencies[k] = BASE_FREQUENCY + k * TONE_SPACING;
     }
 
+    // FFT initialization with diagnostics
+    extern unsigned long _ebss, _estack;
+    unsigned long free_heap = (unsigned long)&_estack - (unsigned long)&_ebss;
+    char msg[128];
+    print_timestamp(msg, sizeof(msg));
+    sprintf(msg + strlen(msg), "Before FFT init - FFT_SIZE: %d, Free heap: %lu bytes", FFT_SIZE, free_heap);
+    Serial.println(msg);
+
+    arm_status status = arm_cfft_radix2_init_f32(&fft_instance, FFT_SIZE, 0, 1);
+    print_timestamp(msg, sizeof(msg));
+    if (status != ARM_MATH_SUCCESS) {
+        sprintf(msg + strlen(msg), "FFT init failed - Status: %d", status);
+        Serial.println(msg);
+    } else {
+        sprintf(msg + strlen(msg), "FFT init succeeded");
+        Serial.println(msg);
+    }
+
     write_idx = 0;
 
     memset(audio_buffer, 0, sizeof(int16_t) * SLOT_DURATION_MAX * SAMPLE_RATE_NATIVE);
     memset(resampled_buffer, 0, sizeof(int16_t) * RESAMPLED_BUFFER_SIZE);
     init_end_time = micros();
-    char msg[128];
     print_timestamp(msg, sizeof(msg));
     sprintf(msg + strlen(msg), "Program initialized in %lu us", init_end_time - init_start_time);
     Serial.println(msg);
