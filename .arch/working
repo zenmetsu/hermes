@@ -1,0 +1,214 @@
+Waterfall.cpp:
+
+#include "Waterfall.h"
+
+Waterfall::Waterfall(DisplayManager& disp)
+  : display(disp), maxMagnitude(0.0), gainFactor(1.0) {
+  // Initialize buffer to black
+  memset(buffer, 0, sizeof(buffer));
+}
+
+void Waterfall::update(AudioAnalyzeFFT1024& fft) {
+  // Shift waterfall left
+  for (int x = 0; x < WATERFALL_HEIGHT - 1; x++) {
+    memcpy(buffer[x], buffer[x+1], SCREEN_WIDTH * sizeof(uint16_t));
+  }
+
+  // Calculate new rightmost column with gain control
+  float binHz = SAMPLE_RATE / 1024.0;  // Hz per bin (43.066Hz)
+  int minBin = MIN_FREQ / binHz;       // ~7
+  int maxBin = MAX_FREQ / binHz;       // ~84
+  int binRange = maxBin - minBin;      // ~77 bins
+
+  // Find maximum magnitude for this frame
+  float localMax = 0.0;
+  for (int y = 0; y < SCREEN_WIDTH; y++) {
+    int bin = minBin + (y * binRange) / SCREEN_WIDTH;
+    float mag = fft.read(bin);
+    if (mag > localMax) localMax = mag;
+  }
+
+  // Update global max with decay
+  if (localMax > maxMagnitude) maxMagnitude = localMax;
+  else maxMagnitude *= GAIN_DECAY;
+  gainFactor = maxMagnitude > 0 ? 1.0 / maxMagnitude : 1.0;
+
+  // Fill new column
+  for (int y = 0; y < SCREEN_WIDTH; y++) {
+    int bin = minBin + (y * binRange) / SCREEN_WIDTH;
+    float magnitude = fft.read(bin) * gainFactor * 5.0;
+
+    if (magnitude > 0.75) {
+      buffer[WATERFALL_HEIGHT-1][y] = COLOR_WHITE;
+    } else if (magnitude > 0.5) {
+      buffer[WATERFALL_HEIGHT-1][y] = COLOR_LIGHTGREY;
+    } else if (magnitude > 0.25) {
+      buffer[WATERFALL_HEIGHT-1][y] = COLOR_GREY;
+    } else if (magnitude > 0.1) {
+      buffer[WATERFALL_HEIGHT-1][y] = COLOR_DARKGREY;
+    } else if (magnitude > 0.05) {
+      buffer[WATERFALL_HEIGHT-1][y] = COLOR_SEAFOAM;
+    } else {
+      buffer[WATERFALL_HEIGHT-1][y] = COLOR_BLACK;
+    }
+  }
+}
+
+void Waterfall::render() {
+  // Render waterfall to display
+  for (int x = 0; x < WATERFALL_HEIGHT; x++) {
+    for (int y = 0; y < SCREEN_WIDTH; y++) {
+      display.drawPixel(y, WATERFALL_HEIGHT-1-x, buffer[x][y]);
+    }
+  }
+  display.updateScreenAsync();
+}
+
+
+Waterfall.h:
+
+#ifndef WATERFALL_H
+#define WATERFALL_H
+
+#include "DisplayManager.h"
+#include "Config.h"
+#include <Audio.h>
+
+// Class to manage waterfall display processing
+// Purpose: Processes FFT data and renders spectral waterfall
+class Waterfall {
+public:
+  Waterfall(DisplayManager& display);  // Constructor takes display reference
+  void update(AudioAnalyzeFFT1024& fft);  // Update waterfall with new FFT data
+  void render();                         // Render waterfall to display
+
+private:
+  DisplayManager& display;  // Reference to display manager
+  uint16_t buffer[WATERFALL_HEIGHT][SCREEN_WIDTH];  // Waterfall pixel buffer
+  float maxMagnitude;       // For automatic gain control
+  float gainFactor;         // Current gain factor
+  const float GAIN_DECAY = 0.99;  // Decay rate for max magnitude
+};
+
+#endif
+
+
+config.h:
+
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// Configuration constants for the Hermes project (JS8 Teensy Transceiver)
+// Purpose: Centralize all constants for easy modification and reference
+
+// Display pin definitions
+#define TFT_DC   29
+#define TFT_CS   28
+#define TFT_RST  24
+#define TFT_MOSI 11
+#define TFT_SCK  13
+#define TFT_MISO 12
+
+// Display dimensions
+#define SCREEN_WIDTH  320
+#define SCREEN_HEIGHT 240
+#define WATERFALL_HEIGHT (SCREEN_HEIGHT / 4)  // 60 pixels
+
+// Audio parameters
+#define SAMPLE_RATE 44100
+#define BUFFER_SECONDS 60
+#define BUFFER_SIZE (SAMPLE_RATE * BUFFER_SECONDS)  // 2,646,000 samples
+
+// Frequency range for waterfall
+#define MIN_FREQ 300    // Hz
+#define MAX_FREQ 3600   // Hz
+
+// Color definitions (RGB565 format)
+#define COLOR_BLACK     0x0000
+#define COLOR_WHITE     0xFFFF
+#define COLOR_DARKGREY  0x4208  // R:2 G:2 B:2
+#define COLOR_GREY      0x8410  // R:4 G:4 B:4
+#define COLOR_LIGHTGREY 0xC618  // R:6 G:6 B:6
+#define COLOR_SEAFOAM   0x4EF4  // R:2 G:7 B:5
+
+// JS8 Normal mode parameters
+#define JS8_NORMAL_BAUD 6.25f  // Baud rate (symbols/sec)
+#define JS8_NORMAL_TONES 79    // Number of 8FSK tones
+#define JS8_NORMAL_DURATION (JS8_NORMAL_TONES / JS8_NORMAL_BAUD)  // 12.64s
+#define JS8_SEARCH_DURATION 17.36f  // 12.64s + 2.36s TX delay + 2.36s RX delay
+#define JS8_RESAMPLE_RATE 12800  // Hz for 6.25 Hz/bin with FFT 2048
+#define JS8_FFT_SIZE 2048
+#define JS8_RESAMPLE_SIZE ((uint32_t)(JS8_RESAMPLE_RATE * JS8_SEARCH_DURATION))  // 222,208 samples
+#define JS8_COSTAS_ARRAY {4, 2, 5, 6, 1, 3, 0}  // JS8 Normal mode Costas array
+
+#endif
+
+
+hermes.ino:
+
+// Main sketch for the Hermes project (JS8 Teensy Transceiver)
+// Purpose: Coordinates audio input, display output, and signal processing
+
+#include "AudioManager.h"
+#include "DisplayManager.h"
+#include "Waterfall.h"
+#include "SignalProcessor.h"
+#include "Utils.h"
+#include "Config.h"
+
+// Global instances
+AudioManager audioManager;
+DisplayManager displayManager;
+Waterfall waterfall(displayManager);
+Utils utils;
+SignalProcessor signalProcessor(utils);
+
+uint32_t startTime;  // Track startup time
+float lastMarkSecond = -1.0;  // Track last mark to avoid repeats
+
+void setup() {
+  Serial.begin(115200);  // For debugging
+  audioManager.begin();
+  displayManager.begin();
+  utils.begin();
+  startTime = millis();  // Record startup time
+  utils.debugPrint("Hermes initialized");
+}
+
+void loop() {
+  audioManager.updateBuffer();  // Continuously update PSRAM buffer
+
+  if (audioManager.isFFTAvailable()) {
+    waterfall.update(audioManager.getFFT());
+    waterfall.render();
+  }
+
+  // Check RTC for JS8 timing marks and demodulation triggers
+  if (utils.isRTCActive()) {
+    float seconds = second() + (millis() % 1000) / 1000.0;
+
+    // Print timing mark at 0, 15, 30, 45 seconds
+    float markSeconds[] = {0.0, 15.0, 30.0, 45.0};
+    for (int i = 0; i < 4; i++) {
+      if (seconds >= markSeconds[i] && seconds < markSeconds[i] + 0.01 &&
+          abs(lastMarkSecond - markSeconds[i]) > 0.5) {  // Avoid rapid repeats
+        utils.debugPrint("======= MARK =======");
+        lastMarkSecond = markSeconds[i];
+        break;
+      }
+    }
+
+    // Trigger demodulation after initial 17.36s delay
+    if ((millis() - startTime) >= (JS8_SEARCH_DURATION * 1000)) {
+      if ((seconds >= 2.36 && seconds < 2.37) ||
+          (seconds >= 17.36 && seconds < 17.37) ||
+          (seconds >= 32.36 && seconds < 32.37) ||
+          (seconds >= 47.36 && seconds < 47.37)) {
+        utils.debugPrint("Starting JS8 Normal mode processing");
+        signalProcessor.processNormal(audioManager.getAudioBuffer(),
+                                     audioManager.getBufferPos());
+      }
+    }
+  }
+}
+
