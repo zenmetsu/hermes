@@ -4,6 +4,7 @@
 #include <arm_math.h>
 #include "Config.h"
 #include "Utils.h"
+#include "Indicator.h"
 
 // Structure to store detected JS8 message candidates
 struct JS8MessageCandidate {
@@ -16,7 +17,7 @@ struct JS8MessageCandidate {
 // Purpose: Handles resampling, tone detection, and Costas synchronization
 class SignalProcessor {
 public:
-  SignalProcessor(Utils& utils);  // Constructor takes utils reference
+  SignalProcessor(Utils& utils, Indicator& indicator);  // Constructor with utils and indicator
   void resample(int16_t* input, uint32_t inputPos);  // Resample 17.36s to 12.8 kHz
   void detectTones();           // Detect 8FSK tones from FFT
   void syncCostas();            // Synchronize with Costas arrays
@@ -27,6 +28,7 @@ public:
 
 private:
   Utils& utils;                 // Reference to utils for debugging
+  Indicator& indicator;         // Reference to indicator for tone markers
   int16_t* resampleBuffer;      // Pointer to global PSRAM buffer
   float32_t fftInput[JS8_FFT_SIZE * 2];  // Complex FFT input (real+imag)
   float32_t fftOutput[JS8_FFT_SIZE];     // FFT magnitude output

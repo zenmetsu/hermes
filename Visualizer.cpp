@@ -1,12 +1,12 @@
-#include "Waterfall.h"
+#include "Visualizer.h"
 
-Waterfall::Waterfall(DisplayManager& disp)
+Visualizer::Visualizer(DisplayManager& disp)
   : display(disp), maxMagnitude(0.0), gainFactor(1.0), lastUpdateTime(0) {
   // Initialize buffer to black
   memset(buffer, 0, sizeof(buffer));
 }
 
-void Waterfall::update(AudioAnalyzeFFT1024& fft) {
+void Visualizer::update(AudioAnalyzeFFT1024& fft) {
   // Shift waterfall left
   for (int x = 0; x < WATERFALL_HEIGHT - 1; x++) {
     memcpy(buffer[x], buffer[x+1], SCREEN_WIDTH * sizeof(uint16_t));
@@ -52,18 +52,18 @@ void Waterfall::update(AudioAnalyzeFFT1024& fft) {
   }
 }
 
-void Waterfall::render() {
-  // Render waterfall to display
+void Visualizer::render() {
+  // Render visualizer region (y=0 to y=59)
   for (int x = 0; x < WATERFALL_HEIGHT; x++) {
     for (int y = 0; y < SCREEN_WIDTH; y++) {
       display.drawPixel(y, WATERFALL_HEIGHT-1-x, buffer[x][y]);
     }
   }
-  display.updateScreenAsync();
-  lastUpdateTime = millis();  // Update timestamp after rendering
+  display.updateScreenAsync();  // Full screen update
+  lastUpdateTime = millis();    // Update timestamp after rendering
 }
 
-bool Waterfall::isReadyToUpdate() {
+bool Visualizer::isReadyToUpdate() {
   // Check if 0.5s has elapsed since last render
   return (millis() - lastUpdateTime) >= UPDATE_INTERVAL;
 }
