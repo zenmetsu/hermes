@@ -16,11 +16,6 @@ void Input::update() {
 }
 
 void Input::render() {
-  // Render input region (y=108 to y=127 tentative)
-  for (int x = 0; x < 20; x++) {
-    for (int y = 0; y < SCREEN_WIDTH; y++) {
-      display.drawPixel(y, 108 + x, buffer[x][y]);
-    }
-  }
-  display.updateScreenAsync();  // Full screen update
+  // Render input region (y=108 to y=127) using regional update
+  display.renderRegion(0, 108, SCREEN_WIDTH, 20, (uint16_t*)buffer);
 }

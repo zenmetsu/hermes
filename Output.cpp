@@ -16,11 +16,6 @@ void Output::update() {
 }
 
 void Output::render() {
-  // Render output region (y=128 to y=239 tentative)
-  for (int x = 0; x < 112; x++) {
-    for (int y = 0; y < SCREEN_WIDTH; y++) {
-      display.drawPixel(y, 128 + x, buffer[x][y]);
-    }
-  }
-  display.updateScreenAsync();  // Full screen update
+  // Render output region (y=128 to y=239) using regional update
+  display.renderRegion(0, 128, SCREEN_WIDTH, 112, (uint16_t*)buffer);
 }

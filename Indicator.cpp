@@ -30,11 +30,6 @@ void Indicator::clear() {
 }
 
 void Indicator::render() {
-  // Render indicator region (y=60 to y=67)
-  for (int x = 0; x < 8; x++) {
-    for (int y = 0; y < SCREEN_WIDTH; y++) {
-      display.drawPixel(y, 60 + x, buffer[x][y]);
-    }
-  }
-  display.updateScreenAsync();  // Full screen update
+  // Render indicator region (y=60 to y=67) using regional update
+  display.renderRegion(0, 60, SCREEN_WIDTH, 8, (uint16_t*)buffer);
 }

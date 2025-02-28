@@ -50,11 +50,6 @@ void Status::update() {
 }
 
 void Status::render() {
-  // Render status region (y=68 to y=107)
-  for (int x = 0; x < 40; x++) {
-    for (int y = 0; y < SCREEN_WIDTH; y++) {
-      display.drawPixel(y, 68 + x, buffer[x][y]);
-    }
-  }
-  display.updateScreenAsync();  // Full screen update
+  // Render status region (y=68 to y=107) using regional update
+  display.renderRegion(0, 68, SCREEN_WIDTH, 40, (uint16_t*)buffer);
 }
