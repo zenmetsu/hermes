@@ -1,4 +1,5 @@
 #include "DisplayManager.h"
+#include <Arduino.h>  // For Serial
 
 DisplayManager::DisplayManager()
   : tft(TFT_CS, TFT_DC, TFT_RST, TFT_MOSI, TFT_SCK, TFT_MISO) {
@@ -6,9 +7,10 @@ DisplayManager::DisplayManager()
 
 void DisplayManager::begin() {
   tft.begin();
-  tft.setRotation(3);  // 270° counterclockwise as requested
+  tft.setRotation(3);
   tft.fillScreen(COLOR_BLACK);
-  tft.useFrameBuffer(true);  // Enable DMA buffer
+  tft.useFrameBuffer(true);
+  Serial.println("DisplayManager begin completed");
 }
 
 void DisplayManager::drawPixel(int16_t x, int16_t y, uint16_t color) {
@@ -20,7 +22,12 @@ void DisplayManager::updateScreenAsync() {
 }
 
 void DisplayManager::renderRegion(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t* buffer) {
+  Serial.print("Rendering region: x="); Serial.print(x);
+  Serial.print(", y="); Serial.print(y);
+  Serial.print(", w="); Serial.print(w);
+  Serial.print(", h="); Serial.println(h);
   tft.writeRect(x, y, w, h, buffer);
+  Serial.println("renderRegion completed");
 }
 
 void DisplayManager::setTextColor(uint16_t color) {

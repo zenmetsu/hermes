@@ -1,54 +1,67 @@
-#include <Arduino.h>  // Required for EXTMEM and Teensy-specific definitions
 #include "AudioManager.h"
+#include <Arduino.h>
 
-// Global PSRAM buffer for audio
-EXTMEM int16_t audioManagerBuffer[BUFFER_SIZE];  // 60s at 44.1 kHz (~5.3 MB)
+EXTMEM int16_t audioManagerBuffer[BUFFER_SIZE];
+static uint32_t lastDebug = 0;
 
-// Constructor: Initializes audio connections
-AudioManager::AudioManager() 
-  : patchCord1(audioInput, 0, fft1024, 0), 
+AudioManager::AudioManager()
+  : patchCord1(audioInput, 0, fft1024, 0),
     patchCord2(audioInput, 0, queue, 0),
-    audioBuffer(audioManagerBuffer),  // Point to global buffer
+    audioBuffer(audioManagerBuffer),
     bufferWritePos(0) {
-  // Note: Objects are initialized in declaration order
 }
 
 void AudioManager::begin() {
-  // Initialize audio system
-  AudioMemory(20);  // Allocate audio memory blocks
-  fft1024.windowFunction(AudioWindowHanning1024);  // Apply Hanning window
-  queue.begin();  // Start recording queue
-  // Note: Audio input starts automatically with AudioConnection
+  AudioMemory(60);  // Increase to 60 blocks
+  fft1024.windowFunction(AudioWindowHanning1024);
+  queue.begin();
+  Serial.println("AudioManager initialized");
+  Serial.print("AudioMemory allocated: "); Serial.println(60);
 }
 
 bool AudioManager::isFFTAvailable() {
-  // Check if new FFT data is ready
-  return fft1024.available();
+  bool available = fft1024.available();
+  
+  static bool lastState = false;
+  if (millis() - lastDebug >= 1000 || available != lastState) {
+    //Serial.print("FFT available: "); Serial.println(available ? "Yes" : "No");
+    //Serial.print("FFT block count: "); Serial.println(fft1024.available() ? 1 : 0);
+    lastDebug = millis();
+    lastState = available;
+  }
+  return available;
 }
 
 AudioAnalyzeFFT1024& AudioManager::getFFT() {
-  // Return reference to FFT object for processing
   return fft1024;
 }
 
 void AudioManager::updateBuffer() {
-  // Update PSRAM buffer with new audio blocks
-  if (queue.available()) {
+  int blocks = queue.available();
+  static uint32_t lastDebug = 0;
+  if (blocks > 0) {
     int16_t* block = queue.readBuffer();
     for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
       audioBuffer[bufferWritePos] = block[i];
       bufferWritePos = (bufferWritePos + 1) % BUFFER_SIZE;
     }
     queue.freeBuffer();
+    if (millis() - lastDebug >= 1000) {
+      Serial.print("Queue blocks available: "); Serial.println(blocks);
+      Serial.print("Audio buffer updated, pos: "); Serial.println(bufferWritePos);
+      Serial.print("Buffer[0-2]: ");
+      Serial.print(audioBuffer[0]); Serial.print(", ");
+      Serial.print(audioBuffer[1]); Serial.print(", ");
+      Serial.println(audioBuffer[2]);
+      lastDebug = millis();
+    }
   }
 }
 
 int16_t* AudioManager::getAudioBuffer() {
-  // Return pointer to PSRAM audio buffer
   return audioBuffer;
 }
 
 uint32_t AudioManager::getBufferPos() {
-  // Return current write position
   return bufferWritePos;
 }

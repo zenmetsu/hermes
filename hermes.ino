@@ -25,9 +25,11 @@ SignalProcessor signalProcessor(utils, indicator);
 uint32_t startTime;
 float lastMarkSecond = -1.0;
 
+static uint32_t lastVisualizerUpdate = 0;
+
 void setup() {
   Serial.begin(115200);
-  delay(100);  // Give Serial time to initialize
+  delay(100);
   Serial.println("Starting setup...");
   audioManager.begin();
   Serial.println("Audio initialized");
@@ -38,38 +40,27 @@ void setup() {
   startTime = millis();
   utils.debugPrint("Hermes initialized");
 
+  // Force Status update and render
   status.update();
-  Serial.println("Status updated");
   status.render();
-  Serial.println("Status rendered");
+  Serial.println("Status rendered in setup");
 
-  indicator.clear();
-  Serial.println("Indicator cleared");
-  indicator.render();
-  Serial.println("Indicator rendered");
-
-  input.update();
-  Serial.println("Input updated");
-  input.render();
-  Serial.println("Input rendered");
-
-  output.update();
-  Serial.println("Output updated");
-  output.render();
-  Serial.println("Output rendered");
+  // Test Visualizer with forced update
+  visualizer.update(audioManager.getFFT());
+  visualizer.render();
+  Serial.println("Visualizer rendered in setup");
 }
 
 void loop() {
   audioManager.updateBuffer();
 
-  // Update and render visualizer with full-screen update
-  if (audioManager.isFFTAvailable() && visualizer.isReadyToUpdate()) {
+  if (audioManager.isFFTAvailable() && (millis() - lastVisualizerUpdate >= 500)) {
     visualizer.update(audioManager.getFFT());
     visualizer.render();
-    Serial.println("Visualizer updated and rendered");
+    lastVisualizerUpdate = millis();
+    Serial.println("Visualizer loop update");
   }
 
-  // Update status periodically (e.g., every second) with regional update
   static uint32_t lastStatusUpdate = 0;
   if (millis() - lastStatusUpdate >= 1000) {
     status.update();
@@ -78,30 +69,5 @@ void loop() {
     Serial.println("Status loop update");
   }
 
-  // Check RTC for JS8 timing marks and demodulation triggers
-  if (utils.isRTCActive()) {
-    float seconds = second() + (millis() % 1000) / 1000.0;
-    float markSeconds[] = {0.0, 15.0, 30.0, 45.0};
-    for (int i = 0; i < 4; i++) {
-      if (seconds >= markSeconds[i] && seconds < markSeconds[i] + 0.01 &&
-          abs(lastMarkSecond - markSeconds[i]) > 0.5) {
-        utils.debugPrint("======= MARK =======");
-        lastMarkSecond = markSeconds[i];
-        break;
-      }
-    }
-
-    if ((millis() - startTime) >= (JS8_SEARCH_DURATION * 1000)) {
-      if ((seconds >= 2.36 && seconds < 2.37) ||
-          (seconds >= 17.36 && seconds < 17.37) ||
-          (seconds >= 32.36 && seconds < 32.37) ||
-          (seconds >= 47.36 && seconds < 47.37)) {
-        utils.debugPrint("Starting JS8 Normal mode processing");
-        signalProcessor.processNormal(audioManager.getAudioBuffer(),
-                                     audioManager.getBufferPos());
-        indicator.render();
-        Serial.println("Indicator updated and rendered");
-      }
-    }
-  }
+  delay(1);
 }

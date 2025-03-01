@@ -1,24 +1,29 @@
 #include "Visualizer.h"
+#include <Arduino.h>
 
 Visualizer::Visualizer(DisplayManager& disp)
   : display(disp), maxMagnitude(0.0), gainFactor(1.0), lastUpdateTime(0) {
-  // Initialize buffer to black
   memset(buffer, 0, sizeof(buffer));
 }
 
 void Visualizer::update(AudioAnalyzeFFT1024& fft) {
-  // Shift waterfall left
+  if (!fft.available()) return;
+
+  static uint32_t lastDebug = 0;
+  if (millis() - lastDebug >= 1000) {
+    Serial.println("Visualizer update called");
+    lastDebug = millis();
+  }
+
   for (int x = 0; x < WATERFALL_HEIGHT - 1; x++) {
     memcpy(buffer[x], buffer[x+1], SCREEN_WIDTH * sizeof(uint16_t));
   }
 
-  // Calculate new rightmost column with gain control
-  float binHz = SAMPLE_RATE / 1024.0;  // Hz per bin (43.066Hz)
-  int minBin = MIN_FREQ / binHz;       // ~7
-  int maxBin = MAX_FREQ / binHz;       // ~84
-  int binRange = maxBin - minBin;      // ~77 bins
+  float binHz = SAMPLE_RATE / 1024.0;
+  int minBin = MIN_FREQ / binHz;
+  int maxBin = MAX_FREQ / binHz;
+  int binRange = maxBin - minBin;
 
-  // Find maximum magnitude for this frame
   float localMax = 0.0;
   for (int y = 0; y < SCREEN_WIDTH; y++) {
     int bin = minBin + (y * binRange) / SCREEN_WIDTH;
@@ -26,12 +31,13 @@ void Visualizer::update(AudioAnalyzeFFT1024& fft) {
     if (mag > localMax) localMax = mag;
   }
 
-  // Update global max with decay
+  if (millis() - lastDebug >= 1000) {
+    Serial.print("Local max magnitude: "); Serial.println(localMax);
+  }
   if (localMax > maxMagnitude) maxMagnitude = localMax;
   else maxMagnitude *= GAIN_DECAY;
   gainFactor = maxMagnitude > 0 ? 1.0 / maxMagnitude : 1.0;
 
-  // Fill new column
   for (int y = 0; y < SCREEN_WIDTH; y++) {
     int bin = minBin + (y * binRange) / SCREEN_WIDTH;
     float magnitude = fft.read(bin) * gainFactor * 5.0;
@@ -53,17 +59,10 @@ void Visualizer::update(AudioAnalyzeFFT1024& fft) {
 }
 
 void Visualizer::render() {
-  // Render visualizer region (y=0 to y=59)
-  for (int x = 0; x < WATERFALL_HEIGHT; x++) {
-    for (int y = 0; y < SCREEN_WIDTH; y++) {
-      display.drawPixel(y, WATERFALL_HEIGHT-1-x, buffer[x][y]);
-    }
-  }
-  display.updateScreenAsync();  // Full screen update
-  lastUpdateTime = millis();    // Update timestamp after rendering
+  display.renderRegion(0, 0, SCREEN_WIDTH, WATERFALL_HEIGHT, (uint16_t*)buffer);
+  lastUpdateTime = millis();
 }
 
 bool Visualizer::isReadyToUpdate() {
-  // Check if 0.5s has elapsed since last render
   return (millis() - lastUpdateTime) >= UPDATE_INTERVAL;
 }
