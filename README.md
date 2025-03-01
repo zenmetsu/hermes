@@ -1,5 +1,8 @@
 # JS8 Teensy Transceiver
 
+## IMPORTANT NOTE
+This repository is under heavy development.  Please don't buy hardware with the expectation that you will be able to cobble together a functional device as it may be some time before the code within this project matures to that point.
+
 ## Overview
 The JS8 Teensy Transceiver is an experimental software-defined radio (SDR) application designed to transmit and receive JS8 digital mode signals using a Teensy 4.1 microcontroller and a Revision D Teensy Audio Adaptor. JS8 is a weak-signal digital mode derived from FT8, offering various speed modes (Turbo: 6s, Fast: 10s, Normal: 15s, Slow: 30s) for amateur radio communication. This project currently focuses on the Normal mode (15s slot, 6.25 baud), with plans to expand to other modes.
 
