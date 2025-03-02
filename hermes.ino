@@ -6,6 +6,8 @@
 #include "util.h"
 #include "ldpc.h"
 #include "arrays.h"
+#include "ldpc_gen.h"
+#include "unpack.h" // Includes huffman_table.h implicitly
 
 AudioInputI2S audioInput;
 AudioRecordQueue queue;
@@ -55,7 +57,7 @@ void loop() {
     }
 
     if (second(now()) % 15 == 0 && !transmitting) {
-        for (int i = 0; i < resampledSize; i++) {
+        for (size_t i = 0; i < resampledSize; i++) {
             rxSamples[i] = resampledBuffer[i] / 32768.0;
         }
         entry(rxSamples.data(), rxSamples.size(), 12800 * 0.5, 12800, 100, 2900, nullptr, nullptr, hermes_cb);

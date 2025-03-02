@@ -1,7 +1,3 @@
-// pack.cc
-// Robert Morris, AB1HL
-// Modified for Teensy 4.1 with 12800 Hz sample rate
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,12 +10,8 @@
 #include "defs.h"
 #include "pack.h"
 #include "util.h"
-
-// LDPC generator matrix (unchanged, from wsjt-x)
-int gen[87][87] = {
-    // [Original matrix unchanged; omitted for brevity]
-    // Same as provided in input
-};
+#include "huffman_table.h" // For ht definition
+#include "ldpc_gen.h" // Added for gen
 
 // Column order table (assumed external from arrays.h)
 extern int colorder[];
@@ -56,17 +48,14 @@ std::vector<double> fsk(std::vector<int> symbols, double hz, double spacing, int
     return v;
 }
 
-// Huffman table (assumed external from unpack.cc)
-extern struct htht ht[];
-
-// Huffman encoding (unchanged)
+// Huffman encoding (updated to use ht from huffman_table.h)
 void pack_huffman(std::string text, int a72[72], int &consumed) {
     for (int i = 0; i < 72; i++) a72[i] = 0;
     a72[0] = 1;
     a72[1] = 0;
     int bi = 2;
     int ti = 0;
-    while (bi < 72 - 1 && ti < text.size()) {
+    while (bi < 72 - 1 && ti < (int)text.size()) { // Cast to int for sign comparison
         int c = text[ti] & 0xff;
         if (islower(c)) c = toupper(c);
         int found = -1;
@@ -102,7 +91,7 @@ std::vector<double> pack_any(int a87[87], int rate, double hz) {
     int a174[174];
     ldpc_encode(a87, a174);
 
-    extern std::vector<int> recode(int a174[]); // Assumed in another file
+    extern std::vector<int> recode(int a174[]); // Assumed in js8.cc
     std::vector<int> a79 = recode(a174);
 
     // JS8 symbol duration is 0.16s (160ms), 2048 samples at 12800 Hz

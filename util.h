@@ -5,7 +5,7 @@
 #include <vector>
 #include <complex>
 
-double now();
+double hermes_now(); // Renamed from now()
 void writewav(const std::vector<double>& samples, const char* filename, int rate);
 std::vector<double> readwav(const char* filename, int& rate_out);
 void writetxt(std::vector<double> v, const char* filename);

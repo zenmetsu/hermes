@@ -1,22 +1,12 @@
+// unpack.cc
+// Robert Morris, AB1HL
+
+#include "unpack.h"
 #include <string>
 #include <vector>
 #include <Arduino.h>
-
-struct htht {
-    const char *a;
-    const char *b;
-};
-static struct htht ht[] = {
-    {" ", "01"}, {"E", "100"}, {"T", "1101"}, {"A", "0011"}, {"O", "11111"},
-    {"I", "11100"}, {"N", "10111"}, {"S", "10100"}, {"H", "00011"}, {"R", "00000"},
-    {"D", "111011"}, {"L", "110011"}, {"C", "110001"}, {"U", "101101"}, {"M", "101011"},
-    {"W", "001011"}, {"F", "001001"}, {"G", "000101"}, {"Y", "000011"}, {"P", "1111011"},
-    {"B", "1111001"}, {".", "1110100"}, {"V", "1100101"}, {"K", "1100100"}, {"-", "1100001"},
-    {"+", "1100000"}, {"?", "1011001"}, {"!", "1011000"}, {"\"", "1010101"}, {"X", "1010100"},
-    {"0", "0010101"}, {"J", "0010100"}, {"1", "0010001"}, {"Q", "0010000"}, {"2", "0001001"},
-    {"Z", "0001000"}, {"3", "0000101"}, {"5", "0000100"}, {"4", "11110101"}, {"9", "11110100"},
-    {"8", "11110001"}, {"6", "11110000"}, {"7", "11101011"}, {"/", "11101010"}, {0, 0}
-};
+#include <cassert> // Added for assert()
+#include "huffman_table.h"
 
 static std::vector<std::string> words; // Empty for now; embed later if needed
 
@@ -25,6 +15,7 @@ void load_words() {
 }
 
 unsigned long long un(const int a87[87], int start, int n) {
+    assert(n > 0 && n <= 64 && start + n <= 72);
     unsigned long long x = 0;
     for (int i = 0; i < n; i++) {
         x <<= 1;

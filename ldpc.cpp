@@ -1,12 +1,7 @@
 #include "ldpc.h"
 #include "arrays.h"
+#include "ldpc_gen.h"
 #include <math.h>
-
-// LDPC generator matrix from wsjt-x (unchanged)
-int gen[87][87] = {
-    // Same as in original libldpc.cc; omitted for brevity
-    // Assume identical to your provided input
-};
 
 float fast_tanh(float x) {
     if (x < -4.97) return -1.0;
