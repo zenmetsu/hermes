@@ -1,9 +1,11 @@
 #include <Audio.h>
 #include <TimeLib.h>
-#include "js8.h" // Simplified, 12800 Hz
-#include "pack.h" // From 1896012795776549375
-#include "resample.h" // From 1895998174680256538
-#include "util.h" // Stub, to be replaced
+#include "js8.h"
+#include "pack.h"
+#include "resample.h"
+#include "util.h"
+#include "ldpc.h"
+#include "arrays.h"
 
 AudioInputI2S audioInput;
 AudioRecordQueue queue;
