@@ -13,6 +13,7 @@ public:
   
 private:
   void updateAudioBuffer(const int16_t *data, size_t len);
+  void updateBufferedWaterfall(); // Added declaration
   volatile uint32_t bufferWritePos;
   volatile uint32_t samplesCollected;
 };

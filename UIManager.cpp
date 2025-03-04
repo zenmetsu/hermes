@@ -1,6 +1,10 @@
 #include "UIManager.h"
+#include <Audio.h>    // Added for AudioAnalyzeFFT1024
 #include <arm_math.h>
-#include <TimeLib.h> // Added for year(), month(), etc.
+#include <TimeLib.h>
+
+
+extern AudioAnalyzeFFT1024 fft1024; // Access FFT from hermes.ino
 
 UIManager::UIManager(ILI9341_t3n &display) 
   : tft(display), 
@@ -38,10 +42,10 @@ void UIManager::handleKeyPress(int key) {
         inputBuffer[inputCursor] = '\0';
       }
       break;
-    case KEY_LEFT:  // Changed from KEYD_LEFT
+    case KEYD_LEFT:  // Restored as per original
       if (inputCursor > 0) inputCursor--;
       break;
-    case KEY_RIGHT: // Changed from KEYD_RIGHT
+    case KEYD_RIGHT: // Restored as per original
       if (inputCursor < strlen(inputBuffer)) inputCursor++;
       break;
     default:
@@ -84,7 +88,9 @@ void UIManager::drawUI() {
 }
 
 void UIManager::renderVisualizer() {
-  // Simplified for now; detailed waterfall logic can be added later
+  if (currentVisualizer == VISUALIZER_REALTIME && fft1024.available()) {
+    updateRealtimeWaterfall();
+  }
   for (int x = 0; x < VISUALIZER_HEIGHT; x++) {
     for (int y = 0; y < SCREEN_WIDTH; y++) {
       tft.drawPixel(y, VISUALIZER_Y + (VISUALIZER_HEIGHT - 1 - x), 
@@ -146,4 +152,47 @@ void UIManager::renderOutput() {
   tft.setTextSize(1);
   tft.setCursor(10, OUTPUT_Y + 10);
   tft.print("No messages yet");
+}
+
+void UIManager::updateRealtimeWaterfall() {
+  for (int x = 0; x < VISUALIZER_HEIGHT - 1; x++) {
+    memcpy(realtimeWaterfall[x], realtimeWaterfall[x + 1], SCREEN_WIDTH * sizeof(uint16_t));
+  }
+  float binHz = SAMPLE_RATE / 1024.0;
+  int minBin = MIN_FREQ / binHz;
+  int maxBin = MAX_FREQ / binHz;
+  int binRange = maxBin - minBin;
+
+  float localMax = 0.0;
+  float avgMagnitude = 0.0;
+  int binCount = 0;
+  for (int y = 0; y < SCREEN_WIDTH; y++) {
+    int bin = minBin + (y * binRange) / SCREEN_WIDTH;
+    float mag = fft1024.read(bin);
+    if (mag > localMax) localMax = mag;
+    avgMagnitude += mag;
+    binCount++;
+  }
+  avgMagnitude /= binCount;
+
+  static float maxMagnitudeRT = 0.0;
+  static float gainFactorRT = 1.0;
+  const float GAIN_DECAY = 0.99;
+  if (localMax > maxMagnitudeRT) maxMagnitudeRT = localMax;
+  else maxMagnitudeRT *= GAIN_DECAY;
+  gainFactorRT = maxMagnitudeRT > 0 ? 1.0 / maxMagnitudeRT : 1.0;
+
+  for (int y = 0; y < SCREEN_WIDTH; y++) {
+    int bin = minBin + (y * binRange) / SCREEN_WIDTH;
+    float magnitude = fft1024.read(bin) * gainFactorRT;
+    float logMag = log10(1.0 + magnitude * 10.0);
+    float normalizedMag = logMag / log10(11.0);
+    float t1 = 0.4, t2 = 0.5, t3 = 0.6, t4 = 0.7, t5 = 0.8;
+    if (normalizedMag > t5) realtimeWaterfall[VISUALIZER_HEIGHT - 1][y] = COLOR_SEAFOAM;
+    else if (normalizedMag > t4) realtimeWaterfall[VISUALIZER_HEIGHT - 1][y] = COLOR_WHITE;
+    else if (normalizedMag > t3) realtimeWaterfall[VISUALIZER_HEIGHT - 1][y] = COLOR_LIGHTGREY;
+    else if (normalizedMag > t2) realtimeWaterfall[VISUALIZER_HEIGHT - 1][y] = COLOR_GREY;
+    else if (normalizedMag > t1) realtimeWaterfall[VISUALIZER_HEIGHT - 1][y] = COLOR_DARKGREY;
+    else realtimeWaterfall[VISUALIZER_HEIGHT - 1][y] = COLOR_BLACK;
+  }
 }

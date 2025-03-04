@@ -2,6 +2,7 @@
 #define UI_MANAGER_H
 
 #include <ILI9341_t3n.h>
+#include <USBHost_t36.h> // Added for KEYD_LEFT, KEYD_RIGHT
 #include "config.h"
 #include "operator.h"
 #include "Buffers.h"
@@ -28,6 +29,7 @@ private:
   void renderStatus();
   void renderInput();
   void renderOutput();
+  void updateRealtimeWaterfall();
 };
 
 #endif
