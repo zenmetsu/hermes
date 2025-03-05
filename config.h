@@ -37,6 +37,9 @@
 #define COLOR_GREY      0x8410
 #define COLOR_LIGHTGREY 0xC618
 #define COLOR_SEAFOAM   0x4EF4
+#define COLOR_GREEN   0x07E0
+#define COLOR_ORANGE  0xFD20
+#define COLOR_RED     0xF800 // Added (pure red in RGB565)
 
 // Frequency range
 #define MIN_FREQ 300    // Hz
