@@ -1,4 +1,8 @@
 # Hermes - Teensy 4.1 Multi-Mode Amateur Radio Transceiver
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/e1ab42ac-ee4c-4a49-8716-2913e61bd0ed" alt="hermes">
+  <br><br>
+</div>
 
 
 ![Build Status](https://github.com/zenmetsu/hermes/actions/workflows/build.yml/badge.svg)
