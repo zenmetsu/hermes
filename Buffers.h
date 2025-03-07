@@ -8,8 +8,8 @@
 extern int16_t audioBuffer[BUFFER_SIZE];
 extern uint16_t realtimeWaterfall[VISUALIZER_HEIGHT][SCREEN_WIDTH];
 extern uint16_t bufferedWaterfall[VISUALIZER_HEIGHT][SCREEN_WIDTH];
-extern float fftBuffer[1024];
-extern float fftOutput[1024];
+extern float fftBuffer[4096];
+extern float fftOutput[4096];
 extern int16_t demodulationBuffer[BUFFER_SIZE];
 extern char receiveBuffer[1024];
 extern char inputBuffer[53];

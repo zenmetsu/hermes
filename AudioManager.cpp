@@ -12,7 +12,7 @@ void AudioManager::begin() {
   sgtl5000.enable();
   sgtl5000.inputSelect(AUDIO_INPUT_LINEIN);
   sgtl5000.volume(0.5);
-  fft1024.windowFunction(AudioWindowHanning1024);
+  fft1024.windowFunction(AudioWindowHanning1024); // Still used for realtime
   queue1.begin();
 }
 
@@ -37,19 +37,19 @@ void AudioManager::updateAudioBuffer(const int16_t *data, size_t len) {
 }
 
 void AudioManager::updateBufferedWaterfall() {
-  static uint32_t lastUpdatePos = 0;
+  static uint32_t lastUpdatePos = 0; // Moved to top
   static arm_rfft_fast_instance_f32 fft_instance;
   static bool fftInitialized = false;
   if (!fftInitialized) {
-    arm_rfft_fast_init_f32(&fft_instance, 1024);
+    arm_rfft_fast_init_f32(&fft_instance, 4096);
     fftInitialized = true;
   }
 
   uint32_t samplesToProcess = min(samplesCollected, HALF_BUFFER);
-  if (samplesToProcess < 1024) return;
+  if (samplesToProcess < 4096) return;
 
-  uint32_t samplesSinceLast = (bufferWritePos >= lastUpdatePos) ? 
-                              (bufferWritePos - lastUpdatePos) : 
+  uint32_t samplesSinceLast = (bufferWritePos >= lastUpdatePos) ?
+                              (bufferWritePos - lastUpdatePos) :
                               (BUFFER_SIZE - lastUpdatePos + bufferWritePos);
   if (samplesSinceLast < SAMPLES_PER_ROW) return;
 
@@ -57,18 +57,18 @@ void AudioManager::updateBufferedWaterfall() {
     memcpy(bufferedWaterfall[x], bufferedWaterfall[x + 1], SCREEN_WIDTH * sizeof(uint16_t));
   }
 
-  uint32_t fftStartPos = (bufferWritePos - 1024 + BUFFER_SIZE) % BUFFER_SIZE;
-  for (int i = 0; i < 1024; i++) {
+  uint32_t fftStartPos = (bufferWritePos - 4096 + BUFFER_SIZE) % BUFFER_SIZE;
+  for (int i = 0; i < 4096; i++) {
     fftBuffer[i] = audioBuffer[(fftStartPos + i) % BUFFER_SIZE] / 32768.0f;
-    fftBuffer[i] *= 0.5 * (1 - cos(2 * PI * i / 1023.0)); // Hanning window
+    fftBuffer[i] *= 0.5 * (1 - cos(2 * PI * i / 4095.0)); // Hanning window for 4096
   }
 
   arm_rfft_fast_f32(&fft_instance, fftBuffer, fftOutput, 0);
 
-  float binHz = SAMPLE_RATE / 1024.0;
-  int minBin = MIN_FREQ / binHz;
-  int maxBin = MAX_FREQ / binHz;
-  int binRange = maxBin - minBin;
+  float binHz = SAMPLE_RATE / 4096.0; // ~10.766 Hz
+  int minBin = MIN_FREQ / binHz;      // 300 / 10.766 ≈ 28
+  int maxBin = MAX_FREQ / binHz;      // 3600 / 10.766 ≈ 334
+  int binRange = maxBin - minBin;     // 334 - 28 = 306
 
   static float maxMagnitudeBuf = 0.0;
   static float gainFactorBuf = 1.0;
@@ -79,7 +79,7 @@ void AudioManager::updateBufferedWaterfall() {
   int binCount = 0;
   for (int y = 0; y < SCREEN_WIDTH; y++) {
     int bin = minBin + (y * binRange) / SCREEN_WIDTH;
-    float mag = sqrt(fftOutput[2 * bin] * fftOutput[2 * bin] + 
+    float mag = sqrt(fftOutput[2 * bin] * fftOutput[2 * bin] +
                      fftOutput[2 * bin + 1] * fftOutput[2 * bin + 1]);
     if (mag > localMax) localMax = mag;
     avgMagnitude += mag;
@@ -93,7 +93,7 @@ void AudioManager::updateBufferedWaterfall() {
 
   for (int y = 0; y < SCREEN_WIDTH; y++) {
     int bin = minBin + (y * binRange) / SCREEN_WIDTH;
-    float mag = sqrt(fftOutput[2 * bin] * fftOutput[2 * bin] + 
+    float mag = sqrt(fftOutput[2 * bin] * fftOutput[2 * bin] +
                      fftOutput[2 * bin + 1] * fftOutput[2 * bin + 1]);
     float magnitude = mag * gainFactorBuf;
     float logMag = log10(1.0 + magnitude * 10.0);
@@ -107,5 +107,5 @@ void AudioManager::updateBufferedWaterfall() {
     else bufferedWaterfall[VISUALIZER_HEIGHT - 1][y] = COLOR_BLACK;
   }
 
-  lastUpdatePos = bufferWritePos;
+  lastUpdatePos = bufferWritePos; // Now in scope
 }
