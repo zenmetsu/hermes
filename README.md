@@ -75,9 +75,9 @@ This is a learning project in C++ and digital signal processing (DSP), iterative
 - `hermes.ino`: Main sketch, setup, and loop.
 - `AudioManager.*`: Audio input processing and buffered waterfall FFT.
 - `UIManager.*`: TFT display and keyboard input handling.
-- `JS8Scheduler.*`: Non-blocking transmission scheduling.
+- `JS8Scheduler.*`: Non-blocking scheduling logic for modulation/demodulation and clock-synchronized transmission.
 - `JS8Modulator.*`: Waveform generation (currently a sine wave).
-- `JS8Demodulator.*`, `JS8Resampler.*`, `JS8Responder.*`: Stubs for receiving.
+- `JS8Demodulator.*`, `JS8Resampler.*`, `JS8Responder.*`: Stubs for resampling, receiving, and auto-reply.
 - `Buffers.*`: PSRAM buffer definitions.
 - `RadioControl.*`: PTT control stub.
 - `config.h`, `operator.h`: Configuration and constants.
