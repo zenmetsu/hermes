@@ -35,8 +35,8 @@ jobs:
           languages: cpp
       - name: Build Sketch for CodeQL
         run: |
-          arduino-cli compile --fqbn teensy:avr:teensy41 --export-source .
+          arduino-cli compile --fqbn teensy:avr:teensy41 .
         env:
-          CODEQL_EXTRACTOR_CPP_BUILD_COMMAND: "arduino-cli compile --fqbn teensy:avr:teensy41 --export-source ."
+          CODEQL_EXTRACTOR_CPP_BUILD_COMMAND: "arduino-cli compile --fqbn teensy:avr:teensy41 ."
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
