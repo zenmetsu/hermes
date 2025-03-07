@@ -2,7 +2,7 @@
 
 ![Build Status](https://github.com/zenmetsu/hermes/actions/workflows/build.yml/badge.svg)
 ![CodeQL](https://github.com/zenmetsu/hermes/actions/workflows/codeql-analysis.yml/badge.svg)
-![License](https://img.shields.io/github/license/zenmetsu/hermes)
+![License](https://img.shields.io/github/license/zenmetsu/hermes?cacheSeconds=0)
 ![Stars](https://img.shields.io/github/stars/zenmetsu/hermes?style=social)
 ![Forks](https://img.shields.io/github/forks/zenmetsu/hermes?style=social)
 ![Teensy](https://img.shields.io/badge/Teensy-4.1-blue)
