@@ -9,29 +9,38 @@ extern bool transmitEnabled;
 extern bool isTransmitting;
 
 UIManager::UIManager(ILI9341_t3n &display, JS8& js8, JS8Modulator& mod)
-    : tft(display),
-      js8Ref(js8),
-      js8ModRef(mod), // Initialize JS8Modulator reference
-      currentVisualizer(VISUALIZER_BUFFERED),
-      inputCursor(0),
-      lastStatusUpdate(0),
-      lastScreenUpdate(0) {}
+    : tft(display), js8Ref(js8), js8ModRef(mod), currentVisualizer(VISUALIZER_BUFFERED),
+      inputCursor(0), lastStatusUpdate(0), lastScreenUpdate(0) {}
 
 void UIManager::begin() {
     tft.begin();
     tft.setRotation(3);
     tft.fillScreen(COLOR_BLACK);
     tft.useFrameBuffer(true);
-    drawUI();
+    // Initial render moved to first update() cycle
 }
 
 void UIManager::update() {
-    if (millis() - lastStatusUpdate >= 1000) {
-        renderStatus();
-        lastStatusUpdate = millis();
-    }
     if (millis() - lastScreenUpdate >= SCREEN_UPDATE_INTERVAL) {
+        // Redraw all regions every ~33ms
+        tft.fillRect(0, VISUALIZER_Y, SCREEN_WIDTH, VISUALIZER_HEIGHT, COLOR_BLACK);
+        tft.fillRect(0, INDICATOR_Y, SCREEN_WIDTH, INDICATOR_HEIGHT, COLOR_DARKGREY);
+        tft.fillRect(0, STATUS_Y, SCREEN_WIDTH, STATUS_HEIGHT, COLOR_BLACK);
+        tft.fillRect(0, INPUT_Y, SCREEN_WIDTH, INPUT_HEIGHT, COLOR_GREY);
+        tft.fillRect(0, OUTPUT_Y, SCREEN_WIDTH, OUTPUT_HEIGHT, COLOR_BLACK);
+
         renderVisualizer();
+        renderIndicator();
+
+        // Status updates every 1s, but drawn every cycle
+        if (millis() - lastStatusUpdate >= 1000) {
+            lastStatusUpdate = millis();
+        }
+        renderStatus();
+
+        renderInput();
+        renderOutput();
+
         tft.updateScreenAsync();
         lastScreenUpdate = millis();
     }
@@ -60,15 +69,16 @@ void UIManager::handleKeyPress(int key) {
             }
             break;
     }
-    renderInput();
+    // Defer to next update() cycle for rendering
 }
 
 void UIManager::handleRawKeyPress(uint8_t keycode) {
     switch (keycode) {
         case 0x28: // CR
-            js8Ref.setOutputBuffer(inputBuffer); // Copy to js8OutputBuffer
-            memset(inputBuffer, 0, sizeof(inputBuffer)); // Clear inputBuffer
-            inputCursor = 0; // Reset cursor
+            js8Ref.setOutputBuffer(inputBuffer);
+            js8ModRef.generateWaveform(inputBuffer);
+            memset(inputBuffer, 0, sizeof(inputBuffer));
+            inputCursor = 0;
             break;
         case 0x2A: // Backspace
             if (inputCursor > 0) {
@@ -77,19 +87,7 @@ void UIManager::handleRawKeyPress(uint8_t keycode) {
             }
             break;
     }
-    renderInput();
-}
-
-void UIManager::drawUI() {
-    tft.fillRect(0, VISUALIZER_Y, SCREEN_WIDTH, VISUALIZER_HEIGHT, COLOR_BLACK);
-    tft.fillRect(0, INDICATOR_Y, SCREEN_WIDTH, INDICATOR_HEIGHT, COLOR_DARKGREY);
-    tft.fillRect(0, STATUS_Y, SCREEN_WIDTH, STATUS_HEIGHT, COLOR_BLACK);
-    tft.fillRect(0, INPUT_Y, SCREEN_WIDTH, INPUT_HEIGHT, COLOR_GREY);
-    tft.fillRect(0, OUTPUT_Y, SCREEN_WIDTH, OUTPUT_HEIGHT, COLOR_BLACK);
-    renderIndicator();
-    renderStatus();
-    renderInput();
-    renderOutput();
+    // Defer to next update() cycle for rendering
 }
 
 void UIManager::renderVisualizer() {
