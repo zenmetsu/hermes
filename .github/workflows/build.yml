@@ -9,10 +9,12 @@ jobs:
         run: |
           curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
           sudo mv bin/arduino-cli /usr/local/bin/
+      - name: Update Core Index with Teensy URL
+        run: |
+          arduino-cli core update-index --additional-urls https://www.pjrc.com/teensy/package_teensy_index.json
       - name: Install Teensy Core
         run: |
-          arduino-cli core update-index
-          arduino-cli core install teensy:avr
+          arduino-cli core install teensy:avr --additional-urls https://www.pjrc.com/teensy/package_teensy_index.json
       - name: Compile Sketch
         run: |
           arduino-cli compile --fqbn teensy:avr:teensy41 .
