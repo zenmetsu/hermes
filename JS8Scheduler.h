@@ -15,14 +15,16 @@ public:
     void begin();
     void update();
 private:
+    enum class TxState { IDLE, PREPARING, TRANSMITTING, STOPPING }; // Transmission states
     JS8& js8Ref;
     JS8Demodulator& demodRef;
     JS8Modulator& modRef;
     RadioControl& radioRef;
-    AudioPlayMemory& playMemRef; // Added for playback
+    AudioPlayMemory& playMemRef;
     static time_t lastCycleTime;
     static const uint16_t cycleDuration;
-    bool waveformGenerated; // Track if transmitBuffer is ready
+    bool waveformGenerated;
+    TxState txState; // Tracks current transmission state
     void triggerDemodulation();
     void startTransmission();
     void stopTransmission();
