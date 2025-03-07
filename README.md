@@ -1,21 +1,23 @@
-# JS8 Teensy Transceiver
+# Hermes - Teensy 4.1 Multi-Mode Amateur Radio Transceiver
 
 ## IMPORTANT NOTE
 This repository is under heavy development.  Please don't buy hardware with the expectation that you will be able to cobble together a functional device as it may be some time before the code within this project matures to that point.
 
 ## Overview
-The JS8 Teensy Transceiver is an experimental software-defined radio (SDR) application designed to transmit and receive JS8 digital mode signals using a Teensy 4.1 microcontroller and a Revision D Teensy Audio Adaptor. JS8 is a weak-signal digital mode derived from FT8, offering various speed modes (Turbo: 6s, Fast: 10s, Normal: 15s, Slow: 30s) for amateur radio communication. This project currently focuses on the Normal mode (15s slot, 6.25 baud), with plans to expand to other modes.
+Hermes is an experimental software-defined radio (SDR) application designed to transmit and receive digital mode signals using a Teensy 4.1 microcontroller and a Revision D Teensy Audio Adaptor. For the time being, the author is focusing on implementing JS8 as the first mode due to a chronic lack of JS8 microcontroller implementations.
+
+JS8 is a weak-signal digital mode derived from FT8, offering various speed modes (Turbo: 6s, Fast: 10s, Normal: 15s, Slow: 30s) for amateur radio communication. This project currently focuses on the Normal mode (15s slot, 6.25 baud), with plans to expand to other modes.
 
 The program leverages the Teensy 4.1’s processing power and PSRAM to handle real-time audio processing, resampling, and signal demodulation, making it a compact, standalone solution for JS8 communication when paired with a compatible radio transceiver.
 
 This project is a learning experiment in C++ and digital signal processing (DSP), iteratively developed to improve code organization and functionality.
 
-## Features
+## Design Criteria for initial JS8 implementation
 - **Receive**: Demodulates JS8 Normal mode signals from a 44.1 kHz audio input, resampling to 12.8 kHz for precise 6.25 Hz/bin FFT analysis.
 - **Transmit**: Generates JS8 Normal mode signals for transmission (currently unimplemented in hardware).
 - **Real-Time**: Uses interrupt-driven audio buffering and timer-based demodulation.
 - **Diagnostics**: Includes profiling (e.g., initialization, resampling times) and timestamped debug messages.
-- **Modular Design**: Structured into separate files (`signal_proc`, `transmit`, `demodulate_normal`, `utils`) for maintainability.
+- **Modular Design**: Structured into separate files for maintainability.
 
 ## Hardware Prerequisites
 - **Teensy 4.1**: 
@@ -56,7 +58,6 @@ This project is a learning experiment in C++ and digital signal processing (DSP)
 ## Usage
 - **Running**: Upload the sketch to the Teensy 4.1. Open the Serial Monitor (115200 baud) to view debug output.
 - **Debug Output**: Timestamped messages show initialization, FFT status, resampling timing, and demodulation progress.
-- **Current State**: Receives JS8 Normal mode signals every 15s (±2.36s skew), but tone detection needs debugging (no signals detected yet).
 
 ## Project Structure
 - `hermes.ino`: Main sketch, setup, and loop.
@@ -64,14 +65,15 @@ This project is a learning experiment in C++ and digital signal processing (DSP)
 ## Status
 - **Stable**: No crashes with FFT_SIZE = 2048.
 - **To-Do**:
-  - Debug demodulation (no tone sets detected—threshold or bin issue).
-  - Implement TX hardware integration.
-  - Add Turbo (6s) and Fast (10s) modes.
-  - Refactor to class-based design.
+  - Add demodulation (start with detecting 8FSK tone sets).
+  - Add proper modulation (currently just generates a sine wave).
+  - Implement TX hardware integration (VOX/GPIO PTT/CAT)
+  - Add Turbo (6s) and Fast (10s) modes, then eventually Slow (30s).
+  - Refactor to class based design.
+  - Add a profiler for tracking performance.
 
 ## Contributing
 This is a learning project—contributions welcome! Fork, modify, and submit pull requests via GitHub.
 
 ## License
 MIT License—see `LICENSE` file (to be added).
-
