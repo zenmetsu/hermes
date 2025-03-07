@@ -66,10 +66,9 @@ void UIManager::handleKeyPress(int key) {
 void UIManager::handleRawKeyPress(uint8_t keycode) {
     switch (keycode) {
         case 0x28: // CR
-            js8Ref.setOutputBuffer(inputBuffer);
-            js8ModRef.generateWaveform(inputBuffer); // Use member reference
-            memset(inputBuffer, 0, sizeof(inputBuffer));
-            inputCursor = 0;
+            js8Ref.setOutputBuffer(inputBuffer); // Copy to js8OutputBuffer
+            memset(inputBuffer, 0, sizeof(inputBuffer)); // Clear inputBuffer
+            inputCursor = 0; // Reset cursor
             break;
         case 0x2A: // Backspace
             if (inputCursor > 0) {

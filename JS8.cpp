@@ -19,3 +19,7 @@ void JS8::clearOutputBuffer() {
     memset(js8OutputBuffer, 0, sizeof(js8OutputBuffer));
     pendingMessage = false;
 }
+
+const char* JS8::getOutputBuffer() const {
+    return js8OutputBuffer; // Return pointer to buffer
+}

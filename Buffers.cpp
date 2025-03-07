@@ -11,4 +11,4 @@ EXTMEM char receiveBuffer[1024] = {0};
 EXTMEM char inputBuffer[53] = {0};
 EXTMEM char outputBuffer[1024] = {0};
 EXTMEM char auxInputBuffer[53] = {0};
-EXTMEM int16_t transmitBuffer[1323000] = {0}; // Added
+EXTMEM unsigned int transmitBuffer[330751] = {0}; // Unchanged

@@ -16,7 +16,7 @@ extern char inputBuffer[53];
 extern char outputBuffer[1024];
 extern char auxInputBuffer[53];
 
-// New transmit buffer for all modes
-EXTMEM extern int16_t transmitBuffer[1323000]; // 30s * 44.1 kHz
+// Transmit buffer: 330,751 32-bit words for 30s at 22050 Hz + header
+EXTMEM extern unsigned int transmitBuffer[330751];
 
 #endif

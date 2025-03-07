@@ -40,10 +40,10 @@ bool isTransmitting = false;
 JS8 js8;
 AudioManager audioManager;
 JS8Demodulator js8Demod;
-JS8Modulator js8Mod(playMemory);       // Moved up
-UIManager uiManager(tft, js8, js8Mod); // Now after js8Mod
+JS8Modulator js8Mod; // Updated constructor
+UIManager uiManager(tft, js8, js8Mod);
 RadioControl radioControl;
-JS8Scheduler js8Scheduler(js8, js8Demod, js8Mod, radioControl);
+JS8Scheduler js8Scheduler(js8, js8Demod, js8Mod, radioControl, playMemory); // Pass playMemory
 JS8Resampler js8Resampler;
 JS8Responder js8Responder;
 
