@@ -1,51 +1,63 @@
-# JS8 Teensy Transceiver
+# Hermes - Teensy 4.1 Multi-Mode Amateur Radio Transceiver
 
 ## IMPORTANT NOTE
-This repository is under heavy development.  Please don't buy hardware with the expectation that you will be able to cobble together a functional device as it may be some time before the code within this project matures to that point.
+This repository is under active development. Please don’t purchase hardware expecting a fully functional device yet—it will take time for the code to mature into a complete transceiver.
 
 ## Overview
-The JS8 Teensy Transceiver is an experimental software-defined radio (SDR) application designed to transmit and receive JS8 digital mode signals using a Teensy 4.1 microcontroller and a Revision D Teensy Audio Adaptor. JS8 is a weak-signal digital mode derived from FT8, offering various speed modes (Turbo: 6s, Fast: 10s, Normal: 15s, Slow: 30s) for amateur radio communication. This project currently focuses on the Normal mode (15s slot, 6.25 baud), with plans to expand to other modes.
+Hermes is an experimental software-defined radio (SDR) application designed to transmit and receive digital mode signals using a Teensy 4.1 microcontroller and a Revision D Teensy Audio Adaptor. The initial focus is on implementing JS8, a weak-signal digital mode derived from FT8, due to the scarcity of JS8 microcontroller implementations.
 
-The program leverages the Teensy 4.1’s processing power and PSRAM to handle real-time audio processing, resampling, and signal demodulation, making it a compact, standalone solution for JS8 communication when paired with a compatible radio transceiver.
+JS8 offers multiple speed modes:
+- **Turbo**: 6s slot, 25 baud
+- **Fast**: 10s slot, 10 baud
+- **Normal**: 15s slot, 6.25 baud
+- **Slow**: 30s slot, 2 baud
 
-This project is a learning experiment in C++ and digital signal processing (DSP), iteratively developed to improve code organization and functionality.
+The project currently supports JS8 Normal mode transmission with a placeholder 1000 Hz sine wave, with plans to expand to full modulation, demodulation, and additional modes. It leverages the Teensy 4.1’s 600 MHz Cortex-M7 processor and 8 MB PSRAM for real-time audio processing, making it a compact, standalone solution for JS8 communication when paired with a compatible radio transceiver.
 
-## Features
-- **Receive**: Demodulates JS8 Normal mode signals from a 44.1 kHz audio input, resampling to 12.8 kHz for precise 6.25 Hz/bin FFT analysis.
-- **Transmit**: Generates JS8 Normal mode signals for transmission (currently unimplemented in hardware).
-- **Real-Time**: Uses interrupt-driven audio buffering and timer-based demodulation.
-- **Diagnostics**: Includes profiling (e.g., initialization, resampling times) and timestamped debug messages.
-- **Modular Design**: Structured into separate files (`signal_proc`, `transmit`, `demodulate_normal`, `utils`) for maintainability.
+This is a learning project in C++ and digital signal processing (DSP), iteratively developed to enhance code organization and functionality.
+
+## Design Criteria for Initial JS8 Implementation
+- **Receive**: Processes 44.1 kHz audio input with a 4096-point FFT (~10.77 Hz/bin resolution) for the buffered waterfall; 1024-point FFT (~43 Hz/bin) for real-time visualization. Demodulation of JS8 Normal mode signals is planned but not yet implemented.
+- **Transmit**: Generates a 12.6-second JS8 Normal mode signal at 22050 Hz, 16-bit PCM, with a 32-bit header (mode `0x82`, sample count). Currently outputs a 1000 Hz sine wave, with silence padding to 30 seconds.
+- **Real-Time**: Uses interrupt-driven audio buffering, non-blocking scheduling, and a state machine for transmission to keep the UI responsive.
+- **Diagnostics**: Provides timestamped debug messages via Serial (115200 baud).
+- **Modular Design**: Organized into classes (`AudioManager`, `UIManager`, `JS8Scheduler`, etc.) for maintainability.
+- **Display**: Features a 320x240 ILI9341 TFT with real-time and buffered waterfalls, updated at ~30 Hz.
 
 ## Hardware Prerequisites
-- **Teensy 4.1**: 
-  - Microcontroller with 600 MHz Cortex-M7, 1 MB RAM (512 KB DTCM, 512 KB OCRAM), and optional 8 MB PSRAM (minimum required).
-  - PSRAM is essential for the 5.17 MB `audio_buffer` (60s at 44.1 kHz) and ~444 KB `resampled_buffer` (17.36s at 12.8 kHz).
+- **Teensy 4.1**:
+  - 600 MHz Cortex-M7, 1 MB RAM (512 KB DTCM, 512 KB OCRAM), 8 MB PSRAM required.
+  - PSRAM stores a 5.17 MB `audioBuffer` (60s at 44.1 kHz) and a 2.65 MB `transmitBuffer` (30s at 22050 Hz, packed 32-bit).
 - **Revision D Teensy Audio Adaptor**:
-  - Provides stereo audio I/O via I2S, connected to the Teensy 4.1.
-  - Input: Line In (left channel) from a radio’s audio output (e.g., 3.5mm jack).
-  - Output: Line Out (left channel) for transmission (not yet implemented).
+  - Stereo I2S audio I/O.
+  - Input: Line In (left channel) from radio audio output (e.g., 3.5mm jack).
+  - Output: Line Out (left channel) to radio for transmission.
 - **Radio Transceiver**:
-  - Compatible with JS8 frequencies (e.g., HF bands like 40m, 20m).
-  - Audio output connected to Teensy Audio Adaptor’s Line In.
-  - PTT (Push-to-Talk) control via Teensy pin 2 (not yet implemented).
+  - HF bands (e.g., 40m, 20m) for JS8 frequencies.
+  - Audio I/O via 3.5mm jacks; PTT via GPIO (pin TBD, currently a stub).
+- **ILI9341 TFT Display**:
+  - 320x240 resolution, SPI interface (pins defined in `config.h`).
 - **USB Connection**:
-  - For power, programming, and serial debugging via a host computer.
+  - For power, programming, and serial debugging.
 
 ## Software Requirements
-- **Arduino IDE**: With Teensyduino addon for compiling and uploading to Teensy 4.1.
+- **Arduino IDE**: With Teensyduino addon for Teensy 4.1 support.
 - **Libraries**:
-  - `Audio.h` (Teensy Audio Library): For I2S audio processing.
-  - `TimeLib.h`: For RTC-based timestamps.
-  - `arm_math.h` (CMSIS-DSP): For FFT and signal processing.
-- **Dependencies**: Standard C++ libraries (`vector`, `algorithm`).
+  - `Audio.h` (Teensy Audio Library): I2S audio processing and playback.
+  - `TimeLib.h`: RTC-based timestamps for cycle synchronization.
+  - `arm_math.h` (CMSIS-DSP): FFT for signal analysis.
+  - `ILI9341_t3n.h`: TFT display control.
+  - `USBHost_t36.h`: USB keyboard input.
+- **Dependencies**: Standard C++ libraries.
 
 ## Installation
 1. **Hardware Setup**:
-   - Solder the Teensy Audio Adaptor to the Teensy 4.1 (pins aligned for I2S).
-   - Connect Line In from the radio to the Audio Adaptor’s left channel input.
-   - Connect Teensy pin 2 to the radio’s PTT (optional, not yet functional).
-   - Add 8 MB PSRAM chip to Teensy 4.1 if not pre-installed.
+   - Solder the Teensy Audio Adaptor to the Teensy 4.1 (I2S pins aligned).
+   - Connect radio Line Out to Audio Adaptor Line In (left channel).
+   - Connect Audio Adaptor Line Out (left channel) to radio Line In.
+   - Attach ILI9341 TFT to SPI pins (see `config.h`).
+   - Add 8 MB PSRAM chip if not pre-installed.
+   - (Optional) Connect PTT to a GPIO pin (TBD).
 2. **Software Setup**:
    - Install Arduino IDE and Teensyduino.
    - Clone this repository: `git clone [repo-url]`.
@@ -54,24 +66,39 @@ This project is a learning experiment in C++ and digital signal processing (DSP)
    - Compile and upload.
 
 ## Usage
-- **Running**: Upload the sketch to the Teensy 4.1. Open the Serial Monitor (115200 baud) to view debug output.
-- **Debug Output**: Timestamped messages show initialization, FFT status, resampling timing, and demodulation progress.
-- **Current State**: Receives JS8 Normal mode signals every 15s (±2.36s skew), but tone detection needs debugging (no signals detected yet).
+- **Running**: Upload the sketch, open Serial Monitor (115200 baud) for debug output.
+- **Input**: Type a message via USB keyboard; press Enter to queue for transmission.
+- **Output**: Transmission occurs at the next 15-second cycle start (e.g., :00, :15), playing a 12.6s 1000 Hz tone.
+- **Display**: Shows real-time (1024-point FFT) and buffered (4096-point FFT) waterfalls, status, and input buffer.
 
 ## Project Structure
 - `hermes.ino`: Main sketch, setup, and loop.
+- `AudioManager.*`: Audio input processing and buffered waterfall FFT.
+- `UIManager.*`: TFT display and keyboard input handling.
+- `JS8Scheduler.*`: Non-blocking scheduling logic for modulation/demodulation and clock-synchronized transmission.
+- `JS8Modulator.*`: Waveform generation (currently a sine wave).
+- `JS8Demodulator.*`, `JS8Resampler.*`, `JS8Responder.*`: Stubs for resampling, receiving, and auto-reply.
+- `Buffers.*`: PSRAM buffer definitions.
+- `RadioControl.*`: PTT control stub.
+- `config.h`, `operator.h`: Configuration and constants.
 
 ## Status
-- **Stable**: No crashes with FFT_SIZE = 2048.
+- **Stable**: No crashes; non-blocking transmission with 4096-point FFT and UI updates.
+- **Implemented**:
+  - JS8 Normal mode transmission (12.6s, 22050 Hz, placeholder 1000 Hz tone).
+  - Non-blocking state machine for scheduling.
+  - Real-time and buffered waterfalls on TFT.
+  - Keyboard input and message queuing.
 - **To-Do**:
-  - Debug demodulation (no tone sets detected—threshold or bin issue).
-  - Implement TX hardware integration.
-  - Add Turbo (6s) and Fast (10s) modes.
-  - Refactor to class-based design.
+  - **Demodulation**: Implement JS8 Normal mode 8-FSK tone detection (~6.25 Hz spacing).
+  - **Modulation**: Replace sine wave with proper JS8 8-FSK encoding.
+  - **Modes**: Add Turbo (6s), Fast (10s), and Slow (30s) support.
+  - **TX Hardware**: Implement PTT (GPIO/VOX/CAT).
+  - **Profiling**: Add performance metrics (e.g., FFT timing).
+  - **Cleanup**: Refine class interactions and buffer management.
 
 ## Contributing
-This is a learning project—contributions welcome! Fork, modify, and submit pull requests via GitHub.
+This is a learning project—contributions are welcome! Fork, modify, and submit pull requests via GitHub.
 
 ## License
 MIT License—see `LICENSE` file (to be added).
-
