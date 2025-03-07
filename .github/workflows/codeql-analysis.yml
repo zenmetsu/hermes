@@ -1,11 +1,11 @@
 name: CodeQL Analysis
 on:
   push:
-    branches: [master]  # Changed from main to master
+    branches: [master]
   pull_request:
-    branches: [master]  # Changed from main to master
+    branches: [master]
   schedule:
-    - cron: '0 0 * * 0'  # Weekly run remains unchanged
+    - cron: '0 0 * * 0'
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -16,11 +16,25 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Install Arduino CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+          sudo mv bin/arduino-cli /usr/local/bin/
+      - name: Update Core Index
+        run: |
+          arduino-cli core update-index --additional-urls https://www.pjrc.com/teensy/package_teensy_index.json
+      - name: Install Teensy Core
+        run: |
+          arduino-cli core install teensy:avr --additional-urls https://www.pjrc.com/teensy/package_teensy_index.json
+      - name: Install ILI9341_t3n Library
+        run: |
+          arduino-cli lib install ILI9341_t3n
+      - name: Build Sketch
+        run: |
+          arduino-cli compile --fqbn teensy:avr:teensy41 .
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: cpp
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
