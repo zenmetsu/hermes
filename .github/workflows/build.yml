@@ -16,4 +16,3 @@ jobs:
       - name: Compile Sketch
         run: |
           arduino-cli compile --fqbn teensy:avr:teensy41 .
-
