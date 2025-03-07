@@ -1,5 +1,8 @@
 # Hermes - Teensy 4.1 Multi-Mode Amateur Radio Transceiver
 
+![Build Status](https://github.com/zenmetsu/hermes/actions/workflows/build.yml/badge.svg)
+![CodeQL](https://github.com/zenmetsu/hermes/actions/workflows/codeql-analysis.yml/badge.svg)
+
 ## IMPORTANT NOTE
 This repository is under active development. Please don’t purchase hardware expecting a fully functional device yet—it will take time for the code to mature into a complete transceiver.
 
@@ -81,9 +84,6 @@ This is a learning project in C++ and digital signal processing (DSP), iterative
 - `Buffers.*`: PSRAM buffer definitions.
 - `RadioControl.*`: PTT control stub.
 - `config.h`, `operator.h`: Configuration and constants.
-
-![Build Status](https://github.com/zenmetsu/hermes/actions/workflows/build.yml/badge.svg)
-![CodeQL](https://github.com/zenmetsu/hermes/actions/workflows/codeql-analysis.yml/badge.svg)
 
 ## Status
 - **Stable**: No crashes; non-blocking transmission with 4096-point FFT and UI updates.
