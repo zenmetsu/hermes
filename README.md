@@ -1,8 +1,11 @@
 # Hermes - Teensy 4.1 Multi-Mode Amateur Radio Transceiver
 
 ![Build Status](https://github.com/zenmetsu/hermes/actions/workflows/build.yml/badge.svg)
+![Version](https://img.shields.io/github/v/tag/zenmetsu/hermes)
+![Last Commit](https://img.shields.io/github/last-commit/zenmetsu/hermes)
 ![CodeQL](https://github.com/zenmetsu/hermes/actions/workflows/codeql-analysis.yml/badge.svg)
 ![License](https://img.shields.io/github/license/zenmetsu/hermes)
+![Contributors](https://img.shields.io/github/contributors/zenmetsu/hermes)
 ![Stars](https://img.shields.io/github/stars/zenmetsu/hermes?style=social)
 ![Forks](https://img.shields.io/github/forks/zenmetsu/hermes?style=social)
 ![Teensy](https://img.shields.io/badge/Teensy-4.1-blue)
