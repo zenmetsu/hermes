@@ -29,12 +29,12 @@ jobs:
       - name: Install ILI9341_t3n Library
         run: |
           arduino-cli lib install ILI9341_t3n
-      - name: Build Sketch
-        run: |
-          arduino-cli compile --fqbn teensy:avr:teensy41 .
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: cpp
+      - name: Build Sketch with CodeQL Tracing
+        run: |
+          /opt/hostedtoolcache/CodeQL/*/x64/codeql/codeql database trace-command --command "arduino-cli compile --fqbn teensy:avr:teensy41 --export-source ." /home/runner/work/_temp/codeql_databases/cpp
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
