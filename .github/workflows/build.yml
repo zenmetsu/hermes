@@ -1,0 +1,18 @@
+name: Build Hermes
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Arduino CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+          sudo mv bin/arduino-cli /usr/local/bin/
+      - name: Install Teensy Core
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install teensy:avr
+      - name: Compile Sketch
+        run: |
+          arduino-cli compile --fqbn teensy:avr:teensy41 .
