@@ -2,6 +2,10 @@
 
 ![Build Status](https://github.com/zenmetsu/hermes/actions/workflows/build.yml/badge.svg)
 ![CodeQL](https://github.com/zenmetsu/hermes/actions/workflows/codeql-analysis.yml/badge.svg)
+![License](https://img.shields.io/github/license/zenmetsu/hermes)
+![Stars](https://img.shields.io/github/stars/zenmetsu/hermes?style=social)
+![Forks](https://img.shields.io/github/forks/zenmetsu/hermes?style=social)
+![Teensy](https://img.shields.io/badge/Teensy-4.1-blue)
 
 ## IMPORTANT NOTE
 This repository is under active development. Please don’t purchase hardware expecting a fully functional device yet—it will take time for the code to mature into a complete transceiver.
