@@ -4,7 +4,7 @@
 #include <TimeLib.h>
 
 // Global variables from hermes.ino
-extern AudioAnalyzeFFT1024 fft1024;
+extern AudioAnalyzeFFT1024 fft1024;  //eventually bump this to fft2048 for better resolution
 extern bool transmitEnabled;
 extern bool isTransmitting;
 

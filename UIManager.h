@@ -7,7 +7,7 @@
 #include "operator.h"
 #include "Buffers.h"
 #include "JS8.h"
-#include "JS8Modulator.h"
+#include "JS8Modulator.h" // stubbed to generate sine wave at the moment
 
 class UIManager {
 public:
