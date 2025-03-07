@@ -82,6 +82,8 @@ This is a learning project in C++ and digital signal processing (DSP), iterative
 - `RadioControl.*`: PTT control stub.
 - `config.h`, `operator.h`: Configuration and constants.
 
+![Build Status](https://github.com/zenmetsu/hermes/actions/workflows/build.yml/badge.svg)
+
 ## Status
 - **Stable**: No crashes; non-blocking transmission with 4096-point FFT and UI updates.
 - **Implemented**:
