@@ -33,8 +33,8 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: cpp
-      - name: Build Sketch with CodeQL Tracing
+      - name: Build and Trace Sketch with CodeQL
         run: |
-          /opt/hostedtoolcache/CodeQL/*/x64/codeql/codeql database trace-command --command "arduino-cli compile --fqbn teensy:avr:teensy41 --export-source ." /home/runner/work/_temp/codeql_databases/cpp
+          codeql database create /home/runner/work/_temp/codeql_databases/cpp --language=cpp --command="arduino-cli compile --fqbn teensy:avr:teensy41 --export-source ."
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
